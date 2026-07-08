@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>需求分析UML题库</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            padding: 30px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+        .title {
+            text-align: center;
+            font-size: 24px;
+            color: #222;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .tab-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            padding: 8px 20px;
+            border: 1px solid #409eff;
+            background: #fff;
+            color: #409eff;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .tab-btn.active {
+            background: #409eff;
+            color: #fff;
+        }
+        .question-wrap {
+            min-height: 320px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .q-index {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 12px;
+        }
+        .q-content {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #444;
+            margin-bottom: 18px;
+        }
+        .option-list {
+            margin-bottom: 20px;
+        }
+        .option-item {
+            padding: 8px 10px;
+            margin: 6px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        .option-item:hover {
+            background: #f0f7ff;
+            border-color: #c6e0ff;
+        }
+        .option-item.selected {
+            background: #e6f0ff;
+            border-color: #409eff;
+        }
+        .answer-box {
+            margin-top: 15px;
+            padding: 12px;
+            background: #f0fdf4;
+            border-radius: 6px;
+            display: none;
+        }
+        .answer-box.show {
+            display: block;
+        }
+        .answer-text {
+            color: #069450;
+            font-weight: bold;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+        button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        #prevBtn {
+            background: #909399;
+            color: white;
+        }
+        #nextBtn {
+            background: #409eff;
+            color: white;
+        }
+        #checkBtn {
+            background: #67c23a;
+            color: white;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 class="title">需求分析与UML题库</h1>
+    <div class="tab-box">
+        <button class="tab-btn active" data-type="single">单选题</button>
+        <button class="tab-btn" data-type="judge">判断题</button>
+    </div>
+
+    <div class="question-wrap">
+        <div class="q-index" id="qIndex"></div>
+        <div class="q-content" id="qContent"></div>
+        <div class="option-list" id="optionList"></div>
+        <div class="answer-box" id="answerBox">
+            正确答案：<span class="answer-text" id="realAnswer"></span>
+        </div>
+    </div>
+
+    <div class="btn-group">
+        <button id="prevBtn">上一题</button>
+        <button id="checkBtn">核对答案</button>
+        <button id="nextBtn">下一题</button>
+    </div>
+</div>
+
+<script>
+    // 题库数据
+    const questionData = {
+        single: [
+            {
+                id: 1,
+                title: "物业公司项目经理提出诉求：“希望物业运维系统自动生成电梯巡检台账，减少人工纸质登记工作量”，该描述属于哪一层需求？",
+                options: [
+                    "A.业务需求",
+                    "B.用户需求",
+                    "C.系统需求",
+                    "D.接口需求"
+                ],
+                answer: "B"
+            },
+            {
+                id: 2,
+                title: "需求分析标准链路：梳理业务痛点→搭建UML各类模型，完成状态图、类图绘制后，首要执行的工作是？",
+                options: [
+                    "A.编写数据库建表语句",
+                    "B.组织客户、业务、开发多方评审核对模型与真实业务是否匹配",
+                    "C.直接启动前端页面开发",
+                    "D.删掉所有存在二义性的业务流程简化模型"
+                ],
+                answer: "B"
+            },
+            {
+                id: 3,
+                title: "下列对需求层级划分描述完全正确的是？",
+                options: [
+                    "A.“系统对接阿里云OSS存储”属于业务需求",
+                    "B.“全年客户投诉下降10%”属于用户需求",
+                    "C.“用户上传文件后系统解析文件内容”属于非功能需求",
+                    "D.“系统支持350人同时在线办理业务”属于性能类非功能需求"
+                ],
+                answer: "D"
+            },
+            {
+                id: 4,
+                title: "企业OA系统角色：普通员工、部门管理员；员工可发起请假、查看公告、提交报销；部门管理员拥有员工全部功能，额外具备审批请假、审核报销、发布部门公告功能。用例图标准表达方式是？",
+                options: [
+                    "A.员工与管理员为独立参与者，无任何关联",
+                    "B.管理员泛化普通员工，继承全部基础用例并新增专属管理用例",
+                    "C.普通员工泛化管理员",
+                    "D.二者通过扩展关系连接用例"
+                ],
+                answer: "B"
+            },
+            {
+                id: 5,
+                title: "线上报修系统约束：用户必须完成账号登录，才能提交设备报修工单，用例间关系描述正确的是？",
+                options: [
+                    "A.登录用例 <<include>> 提交报修",
+                    "B.提交报修 <<include>> 登录",
+                    "C.登录 <<extend>> 提交报修",
+                    "D.两个用例不存在UML关联关系"
+                ],
+                answer: "B"
+            },
+            {
+                id: 6,
+                title: "生鲜配送下单流程：消费者、前端小程序、支付通道、仓储系统、骑手调度模块依次交互传递数据消息，记录完整交互时序应选用？",
+                options: [
+                    "A.用例图",
+                    "B.顺序图",
+                    "C.活动图",
+                    "D.组件图"
+                ],
+                answer: "B"
+            },
+            {
+                id: 7,
+                title: "顺序图与活动图核心适用场景区分正确的是？",
+                options: [
+                    "A.顺序图侧重多个对象间消息交互的先后时序；活动图侧重完整业务步骤、分支、并行流转逻辑",
+                    "B.顺序图用于业务流程梳理，活动图用于接口时序设计",
+                    "C.顺序图仅能描述串行流程，活动图仅能绘制并行流程",
+                    "D.顺序图表达非功能指标，活动图表达功能操作"
+                ],
+                answer: "A"
+            },
+            {
+                id: 8,
+                title: "短视频发布需求：发布视频时系统必须自动压缩视频分辨率，不压缩无法完成上传发布，视频压缩与发布用例关系为？",
+                options: [
+                    "A.视频压缩 <<extend>> 发布视频",
+                    "B.发布视频 <<include>> 视频压缩",
+                    "C.两者独立无关联",
+                    "D.视频压缩泛化发布视频"
+                ],
+                answer: "B"
+            },
+            {
+                id: 9,
+                title: "共享充电宝完整操作流程：扫码识别→验证会员身份→选择时长→扣费→弹出充电宝→归还设备，完整展示整套操作步骤优先选用？",
+                options: [
+                    "A.状态机图",
+                    "B.顺序图",
+                    "C.活动图",
+                    "D.用例图"
+                ],
+                answer: "C"
+            },
+            {
+                id: 10,
+                title: "活动图场景：零件质检完成后分为两条分支，质检合格入库存储、质检不合格返回返修，区分两条分支的专用图形符号是？",
+                options: [
+                    "A.初始起点节点",
+                    "B.菱形决策节点",
+                    "C.并行合并节点",
+                    "D.终止终点节点"
+                ],
+                answer: "B"
+            },
+            {
+                id: 11,
+                title: "报修工单对象包含待提交、待审批、维修中、已完成、已撤销多种状态，清晰表达各类状态切换触发规则最优建模图是？",
+                options: [
+                    "A.活动图",
+                    "B.状态机图",
+                    "C.用例图",
+                    "D.时序图"
+                ],
+                answer: "B"
+            },
+            {
+                id: 12,
+                title: "下列操作属于用例拆分粒度严重不合理的典型错误是？",
+                options: [
+                    "A.将“提交报修工单”拆分为填写故障描述、选择地点、点击提交三个独立用例",
+                    "B.“设备台账管理”用例内部包含新增、删除、修改、查询子功能",
+                    "C.“退出账号登录”单独设计为基础用例",
+                    "D.以上三项均为错误示例"
+                ],
+                answer: "D"
+            },
+            {
+                id: 13,
+                title: "UML顺序图内，虚线箭头代表哪种消息？",
+                options: [
+                    "A.同步调用消息",
+                    "B.返回应答消息",
+                    "C.异步消息",
+                    "D.对象生命线"
+                ],
+                answer: "B"
+            },
+            {
+                id: 15,
+                title: "系统两类质量需求冲突：全链路操作日志加密会大幅拖慢接口响应速度，需求分析师标准处理方案是？",
+                options: [
+                    "A.优先保障安全，完全牺牲接口响应性能",
+                    "B.优先提升响应速度，取消日志加密机制",
+                    "C.梳理业务核心风险点，对安全、性能需求划分优先级，折中权衡设计方案",
+                    "D.直接删除两条存在冲突的需求"
+                ],
+                answer: "C"
+            },
+            {
+                id: 16,
+                title: "下面哪条非功能需求描述满足可量化、可落地校验标准？",
+                options: [
+                    "A.系统页面加载速度要快",
+                    "B.系统安全防护能力强，不易被入侵",
+                    "C.系统全年不间断服务，年度故障停机总时长不超过6小时",
+                    "D.系统尽量稳定，减少崩溃"
+                ],
+                answer: "C"
+            },
+            {
+                id: 17,
+                title: "SRS需求规格说明书中，每一条系统实现需求都能反向追溯到对应的业务人员原始诉求，该特性称为？",
+                options: [
+                    "A.完整性",
+                    "B.可追溯性",
+                    "C.一致性",
+                    "D.无歧义性"
+                ],
+                answer: "B"
+            },
+            {
+                id: 18,
+                title: "SRS文档评审发现缺陷：用例图定义了“批量导出维修报表”功能，但正文需求章节完全没有对应文字描述，该问题属于？",
+                options: [
+                    "A.需求拆分粒度过细",
+                    "B.UML模型与文字文档一致性缺失",
+                    "C.非功能需求内容缺失",
+                    "D.需求优先级划分混乱"
+                ],
+                answer: "B"
+            },
+            {
+                id: 19,
+                title: "项目中期客户提出需求变更：新增会员余额抵扣功能，该功能会影响现有订单结算、优惠券抵扣、退款模块，标准变更管控流程是？",
+                options: [
+                    "A.开发人员直接新增功能，不评估任何影响范围",
+                    "B.直接拒绝客户提出的变更需求",
+                    "C.全面评估变更影响范围，同步更新全部UML模型与SRS文档，执行版本归档管控",
+                    "D.交由后端开发人员自主判断是否实现该功能"
+                ],
+                answer: "C"
+            },
+            {
+                id: 20,
+                title: "需求验证规范描述正确的是？",
+                options: [
+                    "A.仅完整写完SRS文档后开展一次验证工作",
+                    "B.需求验证需要联合业务方、客户、开发、测试共同核对需求是否匹配真实业务诉求",
+                    "C.仅后端开发人员独立完成全部需求验证",
+                    "D.需求验证不需要核对UML模型和文字需求是否统一"
+                ],
+                answer: "B"
+            }
+        ],
+        judge: [
+            {
+                id: 1,
+                title: "需求阶段遗漏性能、安全等非功能指标，到测试或上线阶段才修复，修复成本远高于前期梳理识别。",
+                options: ["T 正确", "F 错误"],
+                answer: "T"
+            },
+            {
+                id: 2,
+                title: "当不同部门负责人提出相互矛盾的业务需求时，需求分析师应组织多方协商，结合业务收益与风险权衡，不能仅凭个人主观判断定方案。",
+                options: ["T 正确", "F 错误"],
+                answer: "T"
+            },
+            {
+                id: 3,
+                title: "<<extend>>扩展关系多用于可选、异常分支功能，比如支付失败弹窗提示，不是每次主流程都会执行。",
+                options: ["T 正确", "F 错误"],
+                answer: "T"
+            },
+            {
+                id: 4,
+                title: "顺序图里细长竖直虚线是对象生命线，矩形激活条代表该对象正在执行业务逻辑。",
+                options: ["T 正确", "F 错误"],
+                answer: "T"
+            },
+            {
+                id: 5,
+                title: "状态机中状态迁移除了外部事件，还可以受监护条件、内部动作完成触发。",
+                options: ["T 正确", "F 错误"],
+                answer: "F"
+            },
+            {
+                id: 6,
+                title: "活动图并行分叉用来拆分多条可同时执行的业务支线，所有支线全部走完后才会到达并行合并节点。",
+                options: ["T 正确", "F 错误"],
+                answer: "T"
+            },
+            {
+                id: 7,
+                title: "0层DFD上下文图只绘制外部实体和系统整体交互，不展示系统内部细分处理流程。",
+                options: ["T 正确", "F 错误"],
+                answer: "T"
+            },
+            {
+                id: 8,
+                title: "UML类图实心菱形代表组合（强整体部分），空心菱形仅代表普通聚合关系。",
+                options: ["T 正确", "F 错误"],
+                answer: "T"
+            },
+            {
+                id: 9,
+                title: "数据字典需要完整定义每个数据项的类型、长度、取值范围与组合结构，不只是记录名称。",
+                options: ["T 正确", "F 错误"],
+                answer: "T"
+            },
+            {
+                id: 10,
+                title: "一份规范完整的SRS文档，必须包含接口需求、运行环境约束、各类非功能需求，不能只写功能操作。",
+                options: ["T 正确", "F 错误"],
+                answer: "F"
+            }
+        ]
+    };
+
+    // 全局变量
+    let currentType = "single";
+    let currentIndex = 0;
+    let selectedOption = null;
+
+    // DOM元素
+    const qIndexEl = document.getElementById("qIndex");
+    const qContentEl = document.getElementById("qContent");
+    const optionListEl = document.getElementById("optionList");
+    const answerBoxEl = document.getElementById("answerBox");
+    const realAnswerEl = document.getElementById("realAnswer");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const checkBtn = document.getElementById("checkBtn");
+    const tabBtns = document.querySelectorAll(".tab-btn");
+
+    // 切换单选/判断标签
+    tabBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            tabBtns.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            currentType = btn.dataset.type;
+            currentIndex = 0;
+            selectedOption = null;
+            renderQuestion();
+        })
+    })
+
+    // 渲染题目
+    function renderQuestion() {
+        const list = questionData[currentType];
+        const item = list[currentIndex];
+        // 清空选择、隐藏答案
+        selectedOption = null;
+        answerBoxEl.classList.remove("show");
+
+        qIndexEl.innerText = `${currentType === "single" ? "单选题" : "判断题"} ${item.id} / ${list.length}`;
+        qContentEl.innerText = item.title;
+        // 渲染选项
+        optionListEl.innerHTML = "";
+        item.options.forEach((opt, idx) => {
+            const div = document.createElement("div");
+            div.className = "option-item";
+            div.innerText = opt;
+            div.dataset.val = opt.charAt(0);
+            div.addEventListener("click", () => {
+                // 清除其他选中
+                document.querySelectorAll(".option-item").forEach(o => o.classList.remove("selected"));
+                div.classList.add("selected");
+                selectedOption = div.dataset.val;
+            })
+            optionListEl.appendChild(div);
+        })
+        // 按钮状态
+        prevBtn.disabled = currentIndex === 0;
+        nextBtn.disabled = currentIndex === list.length - 1;
+    }
+
+    // 上一题
+    prevBtn.addEventListener("click", () => {
+        if (currentIndex > 0) {
+            currentIndex--;
+            renderQuestion();
+        }
+    })
+    // 下一题
+    nextBtn.addEventListener("click", () => {
+        const list = questionData[currentType];
+        if (currentIndex < list.length - 1) {
+            currentIndex++;
+            renderQuestion();
+        }
+    })
+    // 核对答案
+    checkBtn.addEventListener("click", () => {
+        const list = questionData[currentType];
+        const item = list[currentIndex];
+        realAnswerEl.innerText = item.answer;
+        answerBoxEl.classList.add("show");
+    })
+
+    // 初始渲染
+    renderQuestion();
+</script>
+</body>
+</html>
